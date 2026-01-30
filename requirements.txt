@@ -1,0 +1,18 @@
+# AI-Scholar-Daily 依赖列表
+
+# 核心依赖
+arxiv>=2.1.0          # arXiv 官方 API
+feedparser>=6.0.0     # RSS 解析
+requests>=2.31.0      # HTTP 请求
+
+# 配置管理
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+python-dotenv>=1.0.0
+
+# LLM API
+openai>=1.0.0
+
+# 可选：开发依赖
+# pytest>=8.0.0
+# pytest-asyncio>=0.23.0
