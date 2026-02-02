@@ -2,8 +2,8 @@ name: Daily AI Scholar
 
 on:
   schedule:
-    # 每天 UTC 12:00 运行 (北京时间 20:00)
-    - cron: '0 12 * * *'
+    # 每天 UTC 01:00 运行 (北京时间 09:00)
+    - cron: '0 1 * * *'
   workflow_dispatch:  # 支持手动触发
 
 jobs:
@@ -25,20 +25,57 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       
-      - name: Run AI Scholar Daily
+      - name: Run AI Scholar Daily (Papers)
         env:
+          # LLM 配置
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
           LLM_MODEL: ${{ secrets.LLM_MODEL }}
+          # 推送渠道 (serverchan/telegram/whatsapp/openclaw)
+          NOTIFY_CHANNEL: ${{ vars.NOTIFY_CHANNEL || 'serverchan' }}
+          # Server酱
+          SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
+          # Telegram 配置
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          # WhatsApp 配置
+          WHATSAPP_API_TOKEN: ${{ secrets.WHATSAPP_API_TOKEN }}
+          WHATSAPP_PHONE_NUMBER_ID: ${{ secrets.WHATSAPP_PHONE_NUMBER_ID }}
+          WHATSAPP_RECIPIENT: ${{ secrets.WHATSAPP_RECIPIENT }}
+          # OpenClaw 配置
+          OPENCLAW_CHANNEL: ${{ vars.OPENCLAW_CHANNEL }}
+          OPENCLAW_RECIPIENT: ${{ vars.OPENCLAW_RECIPIENT }}
+          # 论文配置
           MAX_PAPERS: ${{ vars.MAX_PAPERS || '10' }}
-          ARXIV_CATEGORIES: ${{ vars.ARXIV_CATEGORIES || 'cs.AI,cs.LG,cs.NI' }}
-          CORE_KEYWORDS: ${{ vars.CORE_KEYWORDS || 'Edge Intelligence,Transformer,Network Optimization' }}
-          RELATED_KEYWORDS: ${{ vars.RELATED_KEYWORDS || 'Federated Learning,IoT,Mobile Computing,Attention Mechanism' }}
+          ARXIV_CATEGORIES: ${{ vars.ARXIV_CATEGORIES }}
+          CORE_KEYWORDS: ${{ vars.CORE_KEYWORDS }}
+          RELATED_KEYWORDS: ${{ vars.RELATED_KEYWORDS }}
         run: python main.py
+
+      - name: Run GitHub Trending AI
+        if: always() # 即使上一主要步骤失败也尝试运行这个
+        env:
+          # LLM 配置
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
+          LLM_MODEL: ${{ secrets.LLM_MODEL }}
+          # 推送渠道
+          NOTIFY_CHANNEL: ${{ vars.NOTIFY_CHANNEL || 'serverchan' }}
+          # Server酱
+          SERVERCHAN_SENDKEY: ${{ secrets.SERVERCHAN_SENDKEY }}
+          # Telegram 配置
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          # WhatsApp 配置
+          WHATSAPP_API_TOKEN: ${{ secrets.WHATSAPP_API_TOKEN }}
+          WHATSAPP_PHONE_NUMBER_ID: ${{ secrets.WHATSAPP_PHONE_NUMBER_ID }}
+          WHATSAPP_RECIPIENT: ${{ secrets.WHATSAPP_RECIPIENT }}
+          # OpenClaw 配置
+          OPENCLAW_CHANNEL: ${{ vars.OPENCLAW_CHANNEL }}
+          OPENCLAW_RECIPIENT: ${{ vars.OPENCLAW_RECIPIENT }}
+        run: python github_main.py
       
       - name: Report failure
         if: failure()
         run: |
-          echo "::error::AI Scholar Daily 运行失败，请检查日志"
+          echo "::error::Workflow 运行遇到错误，请检查日志"

@@ -271,3 +271,82 @@ def summarize_papers(papers: List[Paper]) -> List[PaperSummary]:
     logger.info(f"完成摘要，共 {len(summaries)} 篇论文")
     
     return summaries
+
+
+# ============================================================================
+# 每日总结生成
+# ============================================================================
+
+OVERVIEW_PROMPT = """你是一个 AI 前沿动态分析专家。请根据以下今日 AI 领域的论文和项目，生成一段简洁的中文总结。
+
+今日内容:
+{content_list}
+
+请生成一段 100-150 字的总结，要求:
+1. 概括今日 AI 领域的主要动态和趋势
+2. 突出最值得关注的 2-3 个亮点
+3. 使用简洁专业的语言
+4. 不要使用 Markdown 格式，使用纯文本
+
+直接输出总结内容，不要有任何前缀或解释。
+"""
+
+
+def generate_daily_overview(
+    paper_summaries: list = None,
+    project_summaries: list = None,
+) -> str:
+    """
+    生成每日总结概览
+    
+    Args:
+        paper_summaries: 论文摘要列表 (PaperSummary)
+        project_summaries: 项目摘要列表 (ProjectSummary)
+        
+    Returns:
+        str: 今日总结文本
+    """
+    settings = get_settings()
+    
+    # 构建内容列表
+    content_items = []
+    
+    # 添加论文
+    if paper_summaries:
+        for i, s in enumerate(paper_summaries[:5], 1):  # 最多 5 篇
+            content_items.append(f"论文{i}: {s.title} - {s.core_contribution}")
+    
+    # 添加项目
+    if project_summaries:
+        for i, s in enumerate(project_summaries[:5], 1):  # 最多 5 个
+            content_items.append(f"项目{i}: {s.name} ({s.stars}⭐) - {s.summary}")
+    
+    if not content_items:
+        return "今日暂无重要 AI 动态。"
+    
+    content_list = "\n".join(content_items)
+    
+    try:
+        client = OpenAI(
+            api_key=settings.llm_api_key,
+            base_url=settings.llm_base_url,
+        )
+        
+        response = client.chat.completions.create(
+            model=settings.llm_model,
+            messages=[
+                {"role": "system", "content": RESEARCH_CONTEXT},
+                {"role": "user", "content": OVERVIEW_PROMPT.format(content_list=content_list)},
+            ],
+            max_tokens=300,
+        )
+        
+        overview = response.choices[0].message.content.strip()
+        logger.info("每日总结生成成功")
+        return overview
+        
+    except Exception as e:
+        logger.error(f"每日总结生成失败: {e}")
+        # 返回默认总结
+        return f"今日收录 {len(paper_summaries or [])} 篇论文和 {len(project_summaries or [])} 个热门项目。"
+

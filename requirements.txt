@@ -4,6 +4,7 @@
 arxiv>=2.1.0          # arXiv 官方 API
 feedparser>=6.0.0     # RSS 解析
 requests>=2.31.0      # HTTP 请求
+beautifulsoup4>=4.12.0 # HTML 解析 (GitHub Trending)
 
 # 配置管理
 pydantic>=2.0.0
